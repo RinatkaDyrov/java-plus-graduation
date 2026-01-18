@@ -6,7 +6,7 @@ logging:
 
 spring:
   application:
-    name: stat-server
+    name: stats-server
   config:
     import: "optional:configserver:"
   cloud:
