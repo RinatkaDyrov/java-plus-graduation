@@ -1,0 +1,12 @@
+server:
+  port: 9090
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    url: jdbc:postgresql://stats-db:5432/stat_db
+    username: dbuser
+    password: 12345
