@@ -11,7 +11,7 @@
 	</parent>
 
 	<modules>
-		<module>stat</module>
+		<module>stats</module>
 		<module>core</module>
 		<module>infra</module>
 	</modules>
