@@ -18,3 +18,14 @@ spring:
           uri: lb://MAIN-SERVICE
           predicates:
             - Path=/**
+          filters:
+            - name: Retry
+              args:
+                retries: 10
+                methods: GET,POST,PUT,PATCH,DELETE
+                statuses: SERVICE_UNAVAILABLE, BAD_GATEWAY, GATEWAY_TIMEOUT
+                backoff:
+                  firstBackoff: 200ms
+                  maxBackoff: 3s
+                  factor: 2
+                  basedOnPreviousValue: false
