@@ -3,6 +3,7 @@ logging:
     org.springframework.cloud.gateway: TRACE
     reactor.netty: DEBUG
     org.springframework.web.server: DEBUG
+
 server:
   port: 8080
 spring:
