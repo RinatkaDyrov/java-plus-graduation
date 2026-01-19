@@ -11,10 +11,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   datasource:
-   url: jdbc:postgresql://localhost:5432/maindb
-   username: dbuser
-   password: 12345
-   driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5435/main-service
+    username: main-service
+    password: main-service
+    driver-class-name: org.postgresql.Driver
 
   sql:
     init:

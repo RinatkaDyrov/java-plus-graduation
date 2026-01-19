@@ -4,6 +4,6 @@ spring:
       ddl-auto: none
 
   datasource:
-    url: jdbc:postgresql://stats-db:5432/stat_db
-    username: dbuser
-    password: 12345
+    url: jdbc:postgresql://stats-db:6435/stats_db
+    username: stats_db
+    password: stats_db
