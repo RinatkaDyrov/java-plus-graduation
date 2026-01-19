@@ -8,13 +8,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        # dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
   datasource:
-  # url: jdbc:postgresql://localhost:5435/maindb
-  # username: dbuser
-  # password: 12345
-  # driver-class-name: org.postgresql.Driver
+   url: jdbc:postgresql://localhost:5435/maindb
+   username: dbuser
+   password: 12345
+   driver-class-name: org.postgresql.Driver
 
   sql:
     init:
@@ -27,5 +27,7 @@ logging:
     org.springframework.transaction: INFO
     org.springframework.transaction.interceptor: TRACE
     org.springframework.orm.jpa.JpaTransactionManager: DEBUG
+    org.springframework.boot.context.config: DEBUG
+    org.springframework.core.env: DEBUG
 
 stat-server-url: http://stats-server:9090
