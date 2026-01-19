@@ -4,8 +4,14 @@ logging:
     reactor.netty: DEBUG
     org.springframework.web.server: DEBUG
 
+eureka:
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+
 server:
   port: 8080
+
 spring:
   cloud:
     gateway:
