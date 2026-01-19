@@ -1,9 +1,0 @@
-spring:
-  jpa:
-    hibernate:
-      ddl-auto: none
-
-  datasource:
-    url: jdbc:postgresql://stats-db:6435/stats_db
-    username: stats_db
-    password: stats_db
