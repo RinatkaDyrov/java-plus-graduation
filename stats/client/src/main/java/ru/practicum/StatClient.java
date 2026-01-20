@@ -23,6 +23,7 @@ public class StatClient {
         this.client = RestClient.builder()
                 .baseUrl(url)
                 .build();
+        log.info("Клиент статистики запущен на {}", url);
     }
 
     public void sendHit(RequestHitDto hit) {
