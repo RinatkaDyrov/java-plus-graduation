@@ -1,0 +1,37 @@
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    reactor.netty: DEBUG
+    org.springframework.web.server: DEBUG
+
+eureka:
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+
+      routes:
+        - id: main_service_all
+          uri: lb://MAIN-SERVICE
+          predicates:
+            - Path=/**
+          filters:
+            - name: Retry
+              args:
+                retries: 10
+                methods: GET,POST,PUT,PATCH,DELETE
+                statuses: SERVICE_UNAVAILABLE, BAD_GATEWAY, GATEWAY_TIMEOUT
+                backoff:
+                  firstBackoff: 200ms
+                  maxBackoff: 3s
+                  factor: 2
+                  basedOnPreviousValue: false
