@@ -28,3 +28,33 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  user-db:
+    image: postgres:16.1
+    container_name: postgres-user-db
+    ports:
+      - "7435:5432"
+    environment:
+      POSTGRES_USER: user-service
+      POSTGRES_PASSWORD: user-service
+      POSTGRES_DB: user-service
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user-service -d user-service" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  request-db:
+    image: postgres:16.1
+    container_name: postgres-request-db
+    ports:
+      - "8435:5432"
+    environment:
+      POSTGRES_USER: request-service
+      POSTGRES_PASSWORD: request-service
+      POSTGRES_DB: request-service
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U request-service -d request-service" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
