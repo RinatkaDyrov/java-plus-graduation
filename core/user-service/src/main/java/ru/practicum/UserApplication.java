@@ -7,6 +7,6 @@ import ru.practicum.service.UserService;
 @SpringBootApplication
 public class UserApplication {
     public static void main(String[] args) {
-        SpringApplication.run(UserService.class, args);
+        SpringApplication.run(UserApplication.class, args);
     }
 }
