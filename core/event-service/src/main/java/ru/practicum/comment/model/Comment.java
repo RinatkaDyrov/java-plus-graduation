@@ -32,7 +32,6 @@ public class Comment {
     @Column(name = "title")
     String title;
 
-    @ManyToOne
     @JoinColumn(name = "creator_id", nullable = false)
     Long creatorId;
 
