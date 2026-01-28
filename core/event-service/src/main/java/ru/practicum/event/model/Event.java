@@ -62,7 +62,6 @@ public class Event {
     @Column(name = "request_moderation")
     Boolean requestModeration;
 
-    @ManyToOne
     @JoinColumn(name = "initiator_id")
     Long initiator;
 
@@ -98,13 +97,14 @@ public class Event {
                 && Objects.equals(category, event.category) && Objects.equals(location, event.location)
                 && Objects.equals(paid, event.paid) && Objects.equals(requestModeration, event.requestModeration)
                 && Objects.equals(initiator, event.initiator) && state == event.state
+                && Objects.equals(initiatorName, event.initiatorName)
                 && Objects.equals(createdOn, event.createdOn) && Objects.equals(publishedOn, event.publishedOn);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, title, annotation, description, eventDate, category, location, paid, participantLimit,
-                requestModeration, initiator, views, state, confirmedRequests, createdOn, publishedOn);
+                requestModeration, initiator, initiatorName, views, state, confirmedRequests, createdOn, publishedOn);
     }
 
     @Override
@@ -120,7 +120,8 @@ public class Event {
                 ", paid=" + paid +
                 ", participantLimit=" + participantLimit +
                 ", requestModeration=" + requestModeration +
-                ", initiator=" + initiator +
+                ", initiatorId=" + initiator +
+                ", initiatorName=" + initiatorName +
                 ", views=" + views +
                 ", state=" + state +
                 ", confirmedRequests=" + confirmedRequests +
