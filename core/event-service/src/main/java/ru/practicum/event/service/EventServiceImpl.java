@@ -174,7 +174,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Optional<EventFullDto> getEventByIdAndInitiator(Long eventId, Long userId) {
-        return eventRepository.findByIdAndInitiator(eventId, userId).map(EventMapper::mapToFullDto);
+        return eventRepository.findByIdAndInitiatorId(eventId, userId).map(EventMapper::mapToFullDto);
     }
 
     @Override
