@@ -98,13 +98,6 @@ public class PrivateEventController {
         return commentService.getCommentsByEvent(eventId);
     }
 
-//    @GetMapping("/comments/{commentId}")
-//    public CommentDto getById(@PathVariable Long userId,
-//                              @PathVariable Long commentId) {
-//        log.info("Получение комментария по id={}", commentId);
-//        return commentService.getById(commentId);
-//    }
-
     @PostMapping("/comments/{eventId}")
     public CommentDto addComment(@PathVariable Long userId,
                                  @PathVariable Long eventId,
