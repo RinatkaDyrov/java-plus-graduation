@@ -14,6 +14,7 @@ import ru.practicum.repository.UserRepository;
 
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static ru.practicum.mappers.UserMapper.mapToUser;
@@ -57,5 +58,10 @@ public class UserServiceImpl implements UserService {
             throw new UserNotExistException(userId);
         }
         userRepository.deleteById(userId);
+    }
+
+    @Override
+    public Optional<UserDto> gtUserById(Long id) {
+        return userRepository.findById(id).map(UserMapper::mapToUserDto);
     }
 }

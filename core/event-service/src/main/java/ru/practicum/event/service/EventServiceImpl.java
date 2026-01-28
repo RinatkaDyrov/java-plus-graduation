@@ -1,6 +1,5 @@
 package ru.practicum.event.service;
 
-import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,14 +15,14 @@ import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventSearchParam;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.State;
+import ru.practicum.dto.event.request.NewEventRequest;
+import ru.practicum.dto.event.request.UpdateEventRequest;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.model.StateAction;
 import ru.practicum.event.repository.EventRepository;
 import ru.practicum.event.repository.ViewsRepository;
-import ru.practicum.dto.event.request.NewEventRequest;
-import ru.practicum.dto.event.request.UpdateEventRequest;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.InvalidRequestException;
 import ru.practicum.exception.NotFoundException;
@@ -36,6 +35,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -69,9 +69,9 @@ public class EventServiceImpl implements EventService {
     public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventRequest request) {
         Event event = getEvent(eventId);
         log.info("Валидация события (id {}) для обновления пользователем (id {})", event.getId(), userId);
-        if (userClient.getUserById(userId).isEmpty() &&
+        if (!(userClient.getUserById(userId).isPresent() &&
                 event.getInitiatorId().equals(userId) &&
-                !event.getState().equals(State.PUBLISHED)) {
+                !event.getState().equals(State.PUBLISHED))) {
             log.warn("Конфликт при запросе на обновление события");
             throw new ConflictException("Данное событие нельзя обновлять");
         }
@@ -177,6 +177,7 @@ public class EventServiceImpl implements EventService {
         return eventRepository.findByIdAndInitiatorId(eventId, userId).map(EventMapper::mapToFullDto);
     }
 
+    @Transactional
     @Override
     public Boolean updateConfirmedRequests(Long eventId, Integer increment) {
         eventRepository.incrementConfirmedRequests(eventId,increment);
@@ -275,10 +276,14 @@ public class EventServiceImpl implements EventService {
             List<String> predicateLogs = new ArrayList<>();
 
             log.info("Проводим фильтрацию по пользователям {}", searchParam.getUsers());
-            if (searchParam.getUsers() != null && !searchParam.getUsers().isEmpty() &&
-                    searchParam.getUsers().getFirst() != 0) {
-                predicateLogs.add("Пользователи: " + searchParam.getUsers());
-                predicates.add(root.get("initiatorId").get("id").in(searchParam.getUsers()));
+            if (searchParam.getUsers() != null && !searchParam.getUsers().isEmpty()) {
+                List<Long> validUsers = searchParam.getUsers().stream()
+                        .filter(userId -> userId != null && userId > 0)
+                        .collect(Collectors.toList());
+                if (!validUsers.isEmpty()) {
+                    predicateLogs.add("Пользователи: " + validUsers);
+                    predicates.add(root.get("initiatorId").in(validUsers));
+                }
             }
 
             log.info("Проводим фильтрацию по состояниям {}", searchParam.getStates());
@@ -288,10 +293,14 @@ public class EventServiceImpl implements EventService {
             }
 
             log.info("Проводим фильтрацию по категориям {}", searchParam.getCategories());
-            if (searchParam.getCategories() != null && !searchParam.getCategories().isEmpty() &&
-                    searchParam.getCategories().getFirst() != 0) {
-                predicateLogs.add("Категории: " + searchParam.getCategories());
-                predicates.add(root.get("category").get("id").in(searchParam.getCategories()));
+            if (searchParam.getCategories() != null && !searchParam.getCategories().isEmpty()) {
+                List<Long> validCategories = searchParam.getCategories().stream()
+                        .filter(catId -> catId != null && catId > 0)
+                        .collect(Collectors.toList());
+                if (!validCategories.isEmpty()) {
+                    predicateLogs.add("Категории: " + validCategories);
+                    predicates.add(root.get("category").get("id").in(validCategories));
+                }
             }
 
             log.info("Проводим фильтарацию по временным рамкам: {}, {}", rangeStart, rangeEnd);
@@ -321,29 +330,21 @@ public class EventServiceImpl implements EventService {
             }
 
             log.info("Проводим текстовый поиск по запросу {}", searchParam.getText());
-            if (searchParam.getText() != null) {
-                String searchText = searchParam.getText().toLowerCase();
+            if (searchParam.getText() != null && !searchParam.getText().trim().isEmpty()) {
+                String searchText = searchParam.getText().toLowerCase().trim();
 
-                if (searchText.isEmpty() || searchText.isBlank()) {
-                    log.info("Текстовый поиск не выполняется - строка пуста");
-                } else if ("0".equals(searchText)) {
-                    log.info("Обнаружено значение '0' в текстовом поиске");
-                } else {
-                    log.info("Создание предиката для поиска по текстовому запросу в аннотации");
-                    Predicate annotationPredicate = cb.like(
-                            cb.lower(root.get("annotation")),
-                            "%" + searchText + "%"
-                    );
+                Predicate annotationPredicate = cb.like(
+                        cb.lower(root.get("annotation")),
+                        "%" + searchText + "%"
+                );
 
-                    log.info("Создание предиката для поиска по текстовому запросу в описании");
-                    Predicate descriptionPredicate = cb.like(
-                            cb.lower(root.get("description")),
-                            "%" + searchText + "%"
-                    );
-                    predicateLogs.add("Поиск по текстовому запросу: " + searchParam.getText());
-                    log.info("Объединяем предикаты для поиска в обоих полях");
-                    predicates.add(cb.or(annotationPredicate, descriptionPredicate));
-                }
+                Predicate descriptionPredicate = cb.like(
+                        cb.lower(root.get("description")),
+                        "%" + searchText + "%"
+                );
+                predicateLogs.add("Поиск по текстовому запросу: " + searchParam.getText());
+                log.info("Объединяем предикаты для поиска в обоих полях");
+                predicates.add(cb.or(annotationPredicate, descriptionPredicate));
             }
 
             log.info("Добавляем сортировку по параметру {}", searchParam.getSort());
@@ -355,7 +356,7 @@ public class EventServiceImpl implements EventService {
                         break;
                     case "VIEWS":
                         predicateLogs.add("Поиск с сортировкой по: VIEWS");
-                        query.orderBy(cb.asc(root.get("views")));
+                        query.orderBy(cb.desc(root.get("views"))); // Обычно по убыванию
                         break;
                 }
             }
@@ -363,19 +364,16 @@ public class EventServiceImpl implements EventService {
             log.info("Проводим поиск по paid {}", searchParam.getPaid());
             if (searchParam.getPaid() != null) {
                 predicateLogs.add("Поиск по paid с флагом: " + searchParam.getPaid());
-                predicates.add(cb.lessThanOrEqualTo(root.get("paid"), searchParam.getPaid()));
+                predicates.add(cb.equal(root.get("paid"), searchParam.getPaid()));
             }
 
             log.info("Проводим поиск по onlyAvailable {}", searchParam.getOnlyAvailable());
             if (searchParam.getOnlyAvailable() != null && searchParam.getOnlyAvailable()) {
-                Expression<Integer> limitExpr = root.get("participantLimit");
-                Expression<Integer> requestsExpr = root.get("confirmedRequests");
-                Predicate limitNotZero = cb.notEqual(limitExpr, 0);
-                if (limitNotZero != null) {
-                    predicateLogs.add("Поиск при participantLimit больше 0 и onlyAvailable с флагом: "
-                            + searchParam.getOnlyAvailable());
-                    predicates.add(cb.lessThan(requestsExpr, limitExpr));
-                }
+                Predicate unlimitedEvents = cb.equal(root.get("participantLimit"), 0);
+                Predicate availableEvents = cb.lessThan(root.get("confirmedRequests"), root.get("participantLimit"));
+
+                predicateLogs.add("Поиск только доступных событий");
+                predicates.add(cb.or(unlimitedEvents, availableEvents));
             }
 
             log.info("Количество собранных предикатов {}", predicates.size());

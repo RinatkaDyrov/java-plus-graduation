@@ -8,9 +8,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   datasource:
-    url: jdbc:postgresql://localhost:5435/main-service
-    username: main-service
-    password: main-service
+    url: jdbc:postgresql://localhost:5435/event-service
+    username: event-service
+    password: event-service
     driver-class-name: org.postgresql.Driver
 
   sql:
@@ -20,6 +20,8 @@ spring:
 
 logging:
   level:
+    com.netflix.discovery: DEBUG
+    org.springframework.cloud.netflix.eureka: DEBUG
     org.springframework.orm.jpa: INFO
     org.springframework.transaction: INFO
     org.springframework.transaction.interceptor: TRACE

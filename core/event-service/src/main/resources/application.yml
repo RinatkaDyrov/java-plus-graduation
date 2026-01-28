@@ -1,6 +1,6 @@
 spring:
   application:
-    name: main-service
+    name: event-service
   config:
     import: "optional:configserver:"
   cloud:
@@ -10,14 +10,15 @@ spring:
         serviceId: config-server
 
 server:
-  port: 0
+  port: 8083
 
 eureka:
   client:
-    serviceUrl:
+    service-url:
       defaultZone: http://localhost:8761/eureka/
   instance:
-    preferIpAddress: true
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
     hostname: localhost
     instance-id: "${spring.application.name}:${random.value}"
     leaseRenewalIntervalInSeconds: 10
