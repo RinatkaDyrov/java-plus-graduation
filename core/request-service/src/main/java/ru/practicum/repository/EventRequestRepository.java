@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface EventRequestRepository extends JpaRepository<EventRequest, Long> {
-    List<EventRequest> findAllByRequester_Id(Long requesterId);
+    List<EventRequest> findAllByRequesterId(Long requesterId);
 
     Optional<EventRequest> findByEventIdAndRequesterId(Long eventId, Long requesterId);
 

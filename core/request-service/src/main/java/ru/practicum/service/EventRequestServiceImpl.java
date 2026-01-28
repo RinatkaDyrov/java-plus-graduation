@@ -42,7 +42,7 @@ public class EventRequestServiceImpl implements EventRequestService {
     @Override
     public List<EventRequestDto> getUsersRequests(Long userId) {
         userClient.getUserById(userId).orElseThrow(() -> new NotFoundException("EventRequest", userId));
-        return eventRequestRepository.findAllByRequester_Id(userId).stream()
+        return eventRequestRepository.findAllByRequesterId(userId).stream()
                 .map(EventRequestMapper::mapToEventRequestDto).toList();
     }
 
