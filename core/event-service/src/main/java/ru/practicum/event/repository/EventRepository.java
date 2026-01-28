@@ -40,5 +40,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                  @Param("confirmedRequests") int confirmedRequests);
 
     boolean existsByCategoryId(Long categoryId);
+
+    Optional<Event> findByIdAndInitiator(Long eventId, Long initiatorId);
+
+    @Modifying
+    @Query("UPDATE Event e SET e.confirmedRequests = e.confirmedRequests + :increment WHERE e.id = :eventId")
+    void incrementConfirmedRequests(@Param("eventId") Long eventId, @Param("increment") Integer increment);
 }
 

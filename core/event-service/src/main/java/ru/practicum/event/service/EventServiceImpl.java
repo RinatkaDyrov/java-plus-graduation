@@ -35,6 +35,7 @@ import ru.practicum.location.repository.LocationRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -164,6 +165,22 @@ public class EventServiceImpl implements EventService {
         events.forEach(event -> updateViews(event.getId(), ip));
         log.info("Возвращаем список мероприятий для Public API: {}", events);
         return events;
+    }
+
+    @Override
+    public Optional<EventFullDto> getEventByIdInternal(Long eventId) {
+        return eventRepository.findById(eventId).map(EventMapper::mapToFullDto);
+    }
+
+    @Override
+    public Optional<EventFullDto> getEventByIdAndInitiator(Long eventId, Long userId) {
+        return eventRepository.findByIdAndInitiator(eventId, userId).map(EventMapper::mapToFullDto);
+    }
+
+    @Override
+    public Boolean updateConfirmedRequests(Long eventId, Integer increment) {
+        eventRepository.incrementConfirmedRequests(eventId,increment);
+        return true;
     }
 
     private Event getEvent(Long id) {

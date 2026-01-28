@@ -10,6 +10,7 @@ import ru.practicum.dto.event.request.EventRequestUpdateResult;
 import ru.practicum.service.EventRequestService;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -53,5 +54,10 @@ public class EventRequestController {
                                                         @RequestBody EventRequestUpdateDto request) {
         log.info("___Начинаем обработку запроса обновления {}", request);
         return eventRequestService.updateRequestState(userId, eventId, request);
+    }
+
+    @GetMapping("/requests/{requestId}/internal")
+    public Optional<EventRequestDto> getByEventIdAndRequesterId(@PathVariable Long eventId, @PathVariable Long userId){
+        return eventRequestService.getByEventIdAndRequesterId(eventId, userId);
     }
 }

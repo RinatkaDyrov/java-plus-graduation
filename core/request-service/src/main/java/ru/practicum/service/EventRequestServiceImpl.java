@@ -196,6 +196,12 @@ public class EventRequestServiceImpl implements EventRequestService {
         return result;
     }
 
+    @Override
+    public Optional<EventRequestDto> getByEventIdAndRequesterId(Long eventId, Long userId) {
+        return eventRequestRepository.findByEventIdAndRequesterId(eventId, userId)
+                .map(EventRequestMapper::mapToEventRequestDto);
+    }
+
     @Transactional
     private List<EventRequestDto> findAllByListIds(List<Long> ids) {
         log.info("Получаем все обновленные заявки по id={}", ids);

@@ -8,6 +8,7 @@ import ru.practicum.dto.event.request.NewEventRequest;
 import ru.practicum.dto.event.request.UpdateEventRequest;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EventService {
     EventFullDto addEvent(Long userId, NewEventRequest request);
@@ -25,4 +26,10 @@ public interface EventService {
     List<EventShortDto> getEventsWithParamAdmin(EventSearchParam eventSearchParam, Pageable page);
 
     List<EventShortDto> getEventsWithParamPublic(EventSearchParam eventSearchParam, Pageable page, String ip);
+
+    Optional<EventFullDto> getEventByIdInternal(Long eventId);
+
+    Optional<EventFullDto> getEventByIdAndInitiator(Long eventId, Long userId);
+
+    Boolean updateConfirmedRequests(Long eventId, Integer increment);
 }
