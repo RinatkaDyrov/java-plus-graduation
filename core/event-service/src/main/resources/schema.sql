@@ -57,6 +57,6 @@ CREATE TABLE IF NOT EXISTS comments(
     name VARCHAR(100),
     title varchar(200),
     creator_id BIGINT ,
-    event_id NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    event_id BIGINT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
     state VARCHAR(50)
 );
