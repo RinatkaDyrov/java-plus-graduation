@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.dto.event.State;
+import ru.practicum.event.model.Event;
 
 import java.time.LocalDateTime;
 
@@ -37,7 +38,7 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "event_id", nullable = false)
-    Long eventId;
+    Event event;
 
     @Enumerated(EnumType.STRING)
     State state;

@@ -21,7 +21,6 @@ import ru.practicum.dto.event.State;
 import ru.practicum.dto.event.request.EventRequestDto;
 import ru.practicum.dto.event.request.Status;
 import ru.practicum.dto.user.UserDto;
-import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
 import ru.practicum.exception.*;
@@ -82,7 +81,7 @@ public class CommentServiceImpl implements CommentService {
                     eventId, userId);
             throw new CreateCommentException(eventId, "заявка на мероприятие не была подтверждена");
         }
-        Comment saved = commentRepo.save(CommentMapper.toEntity(dto, user, EventMapper.mapToFullDto(event)));
+        Comment saved = commentRepo.save(CommentMapper.toEntity(dto, user, event));
         log.info("Создание комментария завершено {}", saved);
         return CommentMapper.toDto(saved);
     }
