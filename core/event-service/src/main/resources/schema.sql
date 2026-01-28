@@ -23,15 +23,15 @@ CREATE TABLE IF NOT EXISTS events (
     annotation VARCHAR(2000) NOT NULL,
     description VARCHAR(7000) NOT NULL,
     event_date TIMESTAMP NOT NULL,
-    category_id BIGINT REFERENCES categories(id) NOT NULL,
-    location_id BIGINT REFERENCES locations(id) ON DELETE CASCADE NOT NULL,
+    category_id BIGINT NOT NULL REFERENCES categories(id),
+    location_id BIGINT NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
     paid BOOLEAN,
     participant_limit BIGINT,
     request_moderation BOOLEAN,
     initiator_id BIGINT NOT NULL,
-    initiator_name VARCHAR(100)
+    initiator_name VARCHAR(100),
     views INTEGER,
-    state VARCHAR,
+    state VARCHAR(50),
     confirmed_requests INTEGER,
     created_on TIMESTAMP NOT NULL,
     published_on TIMESTAMP
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS compilation_event (
 
 CREATE TABLE IF NOT EXISTS views (
     id SERIAL PRIMARY KEY,
-    event_id BIGINT NOT NULL,
+    event_id BIGINT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
     ip VARCHAR(45) NOT NULL,
     CONSTRAINT unique_event_ip UNIQUE (event_id, ip)
 );
@@ -57,6 +57,6 @@ CREATE TABLE IF NOT EXISTS comments(
     name VARCHAR(100),
     title varchar(200),
     creator_id BIGINT ,
-    event_id BIGINT,
-    state VARCHAR
+    event_id NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    state VARCHAR(50)
 );
