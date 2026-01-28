@@ -26,7 +26,7 @@ public class EventMapper {
                 .location(location)
                 .paid(request.getPaid())
                 .requestModeration(request.getRequestModeration())
-                .initiator(user.getId())
+                .initiatorId(user.getId())
                 .state(State.PENDING)
                 .createdOn(LocalDateTime.now())
                 .views(0)
@@ -41,7 +41,7 @@ public class EventMapper {
 
     public static EventShortDto mapToShortDto(Event event) {
         UserShortDto shortDto = UserShortDto.builder()
-                .id(event.getInitiator())
+                .id(event.getInitiatorId())
                 .name(event.getInitiatorName())
                 .build();
         return EventShortDto.builder()
@@ -66,7 +66,7 @@ public class EventMapper {
 
     public static EventFullDto mapToFullDto(Event event) {
         UserShortDto shortDto = UserShortDto.builder()
-                .id(event.getInitiator())
+                .id(event.getInitiatorId())
                 .name(event.getInitiatorName())
                 .build();
         return EventFullDto.builder()

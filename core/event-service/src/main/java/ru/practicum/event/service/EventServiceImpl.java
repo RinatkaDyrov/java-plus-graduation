@@ -70,7 +70,7 @@ public class EventServiceImpl implements EventService {
         Event event = getEvent(eventId);
         log.info("Валидация события (id {}) для обновления пользователем (id {})", event.getId(), userId);
         if (userClient.getUserById(userId).isEmpty() &&
-                event.getInitiator().equals(userId) &&
+                event.getInitiatorId().equals(userId) &&
                 !event.getState().equals(State.PUBLISHED)) {
             log.warn("Конфликт при запросе на обновление события");
             throw new ConflictException("Данное событие нельзя обновлять");
@@ -278,7 +278,7 @@ public class EventServiceImpl implements EventService {
             if (searchParam.getUsers() != null && !searchParam.getUsers().isEmpty() &&
                     searchParam.getUsers().getFirst() != 0) {
                 predicateLogs.add("Пользователи: " + searchParam.getUsers());
-                predicates.add(root.get("initiator").get("id").in(searchParam.getUsers()));
+                predicates.add(root.get("initiatorId").get("id").in(searchParam.getUsers()));
             }
 
             log.info("Проводим фильтрацию по состояниям {}", searchParam.getStates());

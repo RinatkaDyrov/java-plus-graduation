@@ -63,7 +63,7 @@ public class Event {
     Boolean requestModeration;
 
     @JoinColumn(name = "initiator_id")
-    Long initiator;
+    Long initiatorId;
 
     @Column(name = "initiator_name")
     String initiatorName;
@@ -96,7 +96,7 @@ public class Event {
                 && Objects.equals(description, event.description) && Objects.equals(eventDate, event.eventDate)
                 && Objects.equals(category, event.category) && Objects.equals(location, event.location)
                 && Objects.equals(paid, event.paid) && Objects.equals(requestModeration, event.requestModeration)
-                && Objects.equals(initiator, event.initiator) && state == event.state
+                && Objects.equals(initiatorId, event.initiatorId) && state == event.state
                 && Objects.equals(initiatorName, event.initiatorName)
                 && Objects.equals(createdOn, event.createdOn) && Objects.equals(publishedOn, event.publishedOn);
     }
@@ -104,7 +104,7 @@ public class Event {
     @Override
     public int hashCode() {
         return Objects.hash(id, title, annotation, description, eventDate, category, location, paid, participantLimit,
-                requestModeration, initiator, initiatorName, views, state, confirmedRequests, createdOn, publishedOn);
+                requestModeration, initiatorId, initiatorName, views, state, confirmedRequests, createdOn, publishedOn);
     }
 
     @Override
@@ -120,7 +120,7 @@ public class Event {
                 ", paid=" + paid +
                 ", participantLimit=" + participantLimit +
                 ", requestModeration=" + requestModeration +
-                ", initiatorId=" + initiator +
+                ", initiatorIdId=" + initiatorId +
                 ", initiatorName=" + initiatorName +
                 ", views=" + views +
                 ", state=" + state +
