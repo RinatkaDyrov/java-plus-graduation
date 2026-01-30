@@ -4,4 +4,5 @@ CREATE TABLE IF NOT EXISTS requests (
     event_id BIGINT,
     requester_id BIGINT,
     status VARCHAR
+    CONSTRAINT uq_event_requester UNIQUE (event_id, requester_id)
 );
