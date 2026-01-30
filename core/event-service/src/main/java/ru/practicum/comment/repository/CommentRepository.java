@@ -16,10 +16,8 @@ import java.util.Optional;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    /* все комментарии автора */
     List<Comment> findByCreatorIdAndState(Long creatorId, State state);
 
-    /* все комментарии под событием */
     List<Comment> findByEventIdAndState(Long eventId, State state);
 
     Optional<Comment> findByIdAndState(Long id, State state);
