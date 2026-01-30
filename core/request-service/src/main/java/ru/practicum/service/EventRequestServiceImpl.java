@@ -2,7 +2,6 @@ package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -35,7 +34,6 @@ public class EventRequestServiceImpl implements EventRequestService {
     private final EventClient eventClient;
     private final EventRequestRepository eventRequestRepository;
     private final TransactionTemplate transactionTemplate;
-    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional(readOnly = true)
     @Override
@@ -82,6 +80,7 @@ public class EventRequestServiceImpl implements EventRequestService {
 
         boolean autoConfirm = (event.getParticipantLimit() == 0) || Boolean.FALSE.equals(event.getRequestModeration());
         Status requestStatus = autoConfirm ? Status.CONFIRMED : Status.PENDING;
+
         EventRequest saved = transactionTemplate.execute(tx -> {
             EventRequest newRequest = EventRequest.builder()
                     .created(LocalDateTime.now())
