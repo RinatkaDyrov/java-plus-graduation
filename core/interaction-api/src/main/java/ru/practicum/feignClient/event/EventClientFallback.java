@@ -15,4 +15,5 @@ public class EventClientFallback implements EventClient {
     public Boolean incrementConfirmedRequests(Long eventId, Integer increment) {
         return Boolean.FALSE;
     }
+
 }

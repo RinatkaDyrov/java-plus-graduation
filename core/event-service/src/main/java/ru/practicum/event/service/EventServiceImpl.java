@@ -184,6 +184,15 @@ public class EventServiceImpl implements EventService {
         return true;
     }
 
+    @Transactional
+    @Override
+    public void changeConfirmedRequests(Long eventId, int delta) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event", eventId));
+        event.setConfirmedRequests(event.getConfirmedRequests() + delta);
+        eventRepository.save(event);
+    }
+
     private Event getEvent(Long id) {
         log.info("Поиск мероприятия (id {})", id);
         return eventRepository.findById(id)

@@ -32,4 +32,6 @@ public interface EventService {
     Optional<EventFullDto> getEventByIdAndInitiator(Long eventId, Long userId);
 
     Boolean updateConfirmedRequests(Long eventId, Integer increment);
+
+    void changeConfirmedRequests(Long eventId, int delta);
 }

@@ -3,6 +3,6 @@ CREATE TABLE IF NOT EXISTS requests (
     created TIMESTAMP,
     event_id BIGINT,
     requester_id BIGINT,
-    status VARCHAR
+    status VARCHAR,
     CONSTRAINT uq_event_requester UNIQUE (event_id, requester_id)
 );

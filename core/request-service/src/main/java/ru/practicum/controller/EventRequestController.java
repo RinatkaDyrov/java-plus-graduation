@@ -56,7 +56,7 @@ public class EventRequestController {
         return eventRequestService.updateRequestState(userId, eventId, request);
     }
 
-    @GetMapping("/requests/{requestId}/internal")
+    @GetMapping("/events/{eventId}/requests/internal")
     public Optional<EventRequestDto> getByEventIdAndRequesterId(@PathVariable Long eventId, @PathVariable Long userId){
         return eventRequestService.getByEventIdAndRequesterId(eventId, userId);
     }

@@ -121,4 +121,5 @@ public class PrivateEventController {
         log.info("Удаление комментария id={} пользователем id={}", commentId, userId);
         commentService.deleteComment(userId, commentId);
     }
+
 }

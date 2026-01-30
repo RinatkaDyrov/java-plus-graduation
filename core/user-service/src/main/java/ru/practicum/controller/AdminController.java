@@ -43,8 +43,9 @@ public class AdminController {
         userService.deleteUser(userId);
     }
 
-    @GetMapping("/users/{id}")
-    public Optional<UserDto> getUserById(@PathVariable Long id) {
-        return userService.gtUserById(id);
+    @GetMapping("/users/{userId}")
+    public Optional<UserDto> getUserById(@PathVariable Long userId) {
+        log.info("Внутренний запрос на получение данных пользователя по ID={}", userId);
+        return userService.gtUserById(userId);
     }
 }

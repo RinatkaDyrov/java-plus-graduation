@@ -92,7 +92,8 @@ public class PublicEventController {
     }
 
     @PutMapping("/{eventId}/{increment}/internal")
-    public Boolean updateConfirmedRequests(@PathVariable Long eventId, @PathVariable Integer increment){
+    public Boolean incrementConfirmedRequests(@PathVariable Long eventId, @PathVariable Integer increment){
         return eventService.updateConfirmedRequests(eventId, increment);
     }
+
 }

@@ -17,4 +17,8 @@ public interface EventClient {
     @PutMapping("/events/{eventId}/{increment}/internal")
     Boolean incrementConfirmedRequests(@PathVariable("eventId") Long eventId,
                                        @PathVariable("increment") Integer increment);
+
+//    @PutMapping("/{eventId}/{increment}/internal")
+//    Boolean updateConfirmedRequests(@PathVariable Long eventId,
+//                                    @PathVariable Integer increment);
 }

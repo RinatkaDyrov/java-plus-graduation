@@ -53,13 +53,17 @@ public class EventRequestServiceImpl implements EventRequestService {
 
         UserDto user = userClient.getUserById(userId).orElseThrow(() -> new NotFoundException("EventRequest", userId));
         EventFullDto event = eventClient.getEventById(eventId)
-                .orElseThrow(() -> new NotFoundException("EventRequest", eventId));
+                .orElseThrow(() -> {
+                            log.error("Вот тут то мы и упали потому что eventId={}", eventId);
+                            return new NotFoundException("EventRequest", eventId);
+                        }
+                );
 
         if (eventRequestRepository.findByEventIdAndRequesterId(eventId, userId).isPresent()) {
             throw new RequestModerationException(eventId, "Заявка уже была отправлена");
         }
 
-        if (event.getParticipantLimit() > 0 && event.getParticipantLimit().equals(event.getConfirmedRequests())) {
+        if (event.getParticipantLimit() > 0 && event.getConfirmedRequests() >= event.getParticipantLimit()) {
             log.error("Заявка не была добавлена: лимит заявок исчерпан: лимит={}, принятых заявок={}",
                     event.getParticipantLimit(), event.getConfirmedRequests());
             throw new RequestModerationException(eventId, "Лимит заявок исчерпан");
@@ -90,7 +94,10 @@ public class EventRequestServiceImpl implements EventRequestService {
         });
 
         if (saved != null && saved.getStatus() == Status.CONFIRMED) {
-            applicationEventPublisher.publishEvent(new ConfirmedRequestsChangedEvent(saved.getEventId(), 1));
+            Boolean ok = eventClient.incrementConfirmedRequests(saved.getEventId(), 1);
+            if (ok == null || !ok) {
+                throw new RequestModerationException("Не удалось обновить confirmedRequests");
+            }
         }
 
         return EventRequestMapper.mapToEventRequestDto(saved);
@@ -113,9 +120,10 @@ public class EventRequestServiceImpl implements EventRequestService {
             }
             eventRequest.setStatus(Status.CANCELED);
             if (previousStatus == Status.CONFIRMED) {
-                applicationEventPublisher.publishEvent(
-                        new ConfirmedRequestsChangedEvent(eventRequest.getEventId(), -1)
-                );
+                Boolean ok = eventClient.incrementConfirmedRequests(eventRequest.getEventId(), -1);
+                if (ok == null || !ok) {
+                    throw new RequestModerationException("Не удалось обновить confirmedRequests");
+                }
             }
             return EventRequestMapper.mapToEventRequestDto(eventRequest);
         });
@@ -152,7 +160,7 @@ public class EventRequestServiceImpl implements EventRequestService {
 
         if (!event.getInitiator().getId().equals(userId)) {
             log.error("Пользователь id={} не является инициатором события id={}", userId, eventId);
-            throw new ConflictException("У пользователя нет доступа к данному событию");
+            throw new RequestModerationException("У пользователя нет доступа к данному событию");
         }
 
         List<EventRequest> requests = eventRequestRepository.findByRequestIds(requestIds);
@@ -206,7 +214,10 @@ public class EventRequestServiceImpl implements EventRequestService {
         });
 
         if (result != null && result.getConfirmedRequests() != null && !result.getConfirmedRequests().isEmpty()) {
-            applicationEventPublisher.publishEvent(new ConfirmedRequestsChangedEvent(eventId, result.getConfirmedRequests().size()));
+            Boolean ok = eventClient.incrementConfirmedRequests(eventId, result.getConfirmedRequests().size());
+            if (ok == null || !ok) {
+                throw new RequestModerationException("Не удалось обновить confirmedRequests");
+            }
         }
 
         return result;
