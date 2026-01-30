@@ -58,7 +58,7 @@ public class EventRequestServiceImpl implements EventRequestService {
             throw new RequestModerationException(eventId, "Заявка уже была отправлена");
         }
 
-        if (event.getParticipantLimit() > 0 && event.getParticipantLimit().equals(event.getConfirmedRequests())) {
+        if (event.getParticipantLimit() > 0 && event.getParticipantLimit() >= (event.getConfirmedRequests())) {
             log.error("Заявка не была добавлена: лимит заявок исчерпан: лимит={}, принятых заявок={}",
                     event.getParticipantLimit(), event.getConfirmedRequests());
             throw new RequestModerationException(eventId, "Лимит заявок исчерпан");
@@ -167,34 +167,34 @@ public class EventRequestServiceImpl implements EventRequestService {
             throw new RequestModerationException(eventId, "Можно принимать заявки только в статусе ожидания");
         }
 
-        int limit = event.getParticipantLimit();
-        int confirmed = event.getConfirmedRequests();
-
-        log.info("Проверяем наличие свободных мест");
-        if (limit > 0 && limit <= confirmed) {
-            log.error("Лимит заявок для мероприятия id={} уже исчерпан {}", eventId, limit - confirmed);
-            throw new RequestModerationException(eventId, "Лимит заявок исчерпан");
-        }
-
-        int available = (limit == 0) ? Integer.MAX_VALUE : (limit - confirmed);
-
-        List<Long> toConfirm;
-        List<Long> toReject;
-
-        if (status.equalsIgnoreCase("rejected")) {
-            toConfirm = List.of();
-            toReject = requestIds;
-        } else {
-            if (requestIds.size() > available) {
-                toConfirm = requestIds.subList(0, available);
-                toReject = requestIds.subList(available, requestIds.size());
-            } else {
-                toReject = List.of();
-                toConfirm = requestIds;
-            }
-        }
-
         EventRequestUpdateResult result = transactionTemplate.execute(tx -> {
+            EventFullDto fresh = eventClient.getEventById(eventId)
+                    .orElseThrow(() -> new NotFoundException("Event", eventId));
+
+            int limitFresh = fresh.getParticipantLimit();
+            int confirmedFresh = fresh.getConfirmedRequests();
+
+            if (limitFresh > 0 && confirmedFresh >= limitFresh && !status.equalsIgnoreCase("rejected")) {
+                throw new RequestModerationException(eventId, "Лимит заявок исчерпан");
+            }
+
+            int available = (limitFresh == 0) ? Integer.MAX_VALUE : (limitFresh - confirmedFresh);
+            List<Long> toConfirm;
+            List<Long> toReject;
+
+            if (status.equalsIgnoreCase("rejected")) {
+                toConfirm = List.of();
+                toReject = requestIds;
+            } else {
+                if (requestIds.size() > available) {
+                    toConfirm = requestIds.subList(0, available);
+                    toReject = requestIds.subList(available, requestIds.size());
+                } else {
+                    toReject = List.of();
+                    toConfirm = requestIds;
+                }
+            }
+
             EventRequestUpdateResult r = EventRequestUpdateResult.builder().build();
 
             if (!toConfirm.isEmpty()) {
