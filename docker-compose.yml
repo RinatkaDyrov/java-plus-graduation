@@ -1,22 +1,22 @@
 services:
-  main-service-db:
+  event-service-db:
     image: postgres:16.1
-    container_name: postgres-main-service-db
+    container_name: postgres-event-service-db
     ports:
       - "5435:5432"
     environment:
-      POSTGRES_USER: main-service
-      POSTGRES_PASSWORD: main-service
-      POSTGRES_DB: main-service
+      POSTGRES_USER: event-service
+      POSTGRES_PASSWORD: event-service
+      POSTGRES_DB: event-service
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U main-service -d main-service" ]
+      test: [ "CMD-SHELL", "pg_isready -U event-service -d event-service" ]
       interval: 5s
       timeout: 5s
       retries: 10
 
   stats-db:
     image: postgres:16.1
-    container_name: postgres-stats-db
+    container_name: postgres-stats-service-db
     ports:
       - "6435:5432"
     environment:
@@ -25,6 +25,36 @@ services:
       POSTGRES_DB: stats
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U stats -d stats" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  user-db:
+    image: postgres:16.1
+    container_name: postgres-user-service-db
+    ports:
+      - "7435:5432"
+    environment:
+      POSTGRES_USER: user-service
+      POSTGRES_PASSWORD: user-service
+      POSTGRES_DB: user-service
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user-service -d user-service" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  request-db:
+    image: postgres:16.1
+    container_name: postgres-request-service-db
+    ports:
+      - "8435:5432"
+    environment:
+      POSTGRES_USER: request-service
+      POSTGRES_PASSWORD: request-service
+      POSTGRES_DB: request-service
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U request-service -d request-service" ]
       interval: 5s
       timeout: 5s
       retries: 10
