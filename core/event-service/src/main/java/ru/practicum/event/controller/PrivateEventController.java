@@ -11,7 +11,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.StatClient;
 import ru.practicum.comment.service.CommentService;
 import ru.practicum.dto.RequestHitDto;
 import ru.practicum.dto.comment.CommentDto;

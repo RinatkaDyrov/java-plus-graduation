@@ -9,7 +9,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.StatClient;
 import ru.practicum.dto.RequestHitDto;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventSearchParam;
