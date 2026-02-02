@@ -2,12 +2,12 @@ package ru.practicum.controller;
 
 import com.google.protobuf.Empty;
 import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
+import org.springframework.beans.factory.annotation.Value;
+import ru.practicum.ewm.stats.avro.UserActionAvro;
 import ru.practicum.mapper.UserActionMapper;
 import ru.practicum.service.CollectorService;
 import ru.yandex.practicum.grpc.stats.action.UserActionControllerGrpc;
@@ -28,15 +28,17 @@ public class CollectorController extends UserActionControllerGrpc.UserActionCont
     public void collectionUserAction(UserAction.UserActionProto request, StreamObserver<Empty> responseObserver) {
         log.info("Получение информации о действии пользователя {}", request);
         try {
-            collectorService.send(topic, userActionMapper.mapToAvro(request));
+            UserActionAvro avro = userActionMapper.mapToAvro(request);
+            collectorService.send(topic, avro);
+
             responseObserver.onNext(Empty.getDefaultInstance());
             responseObserver.onCompleted();
         } catch (Exception e) {
-            responseObserver.onError(new StatusRuntimeException(
-                    Status.INTERNAL
-                            .withDescription(e.getLocalizedMessage())
-                            .withCause(e)
-            ));
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription(e.getLocalizedMessage())
+                    .withCause(e)
+                    .asRuntimeException()
+            );
         }
     }
 }

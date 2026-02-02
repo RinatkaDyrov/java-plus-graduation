@@ -34,4 +34,5 @@ public interface UserActionMapper {
     default Instant mapTimestampToInstant(Timestamp ts) {
         if (ts == null) return null;
         return Instant.ofEpochSecond(ts.getSeconds(), ts.getNanos());
-    }}
+    }
+}
