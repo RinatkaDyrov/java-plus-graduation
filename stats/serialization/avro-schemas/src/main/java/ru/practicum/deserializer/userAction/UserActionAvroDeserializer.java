@@ -1,4 +1,4 @@
-package ru.practicum.deserializer.eventAction;
+package ru.practicum.deserializer.userAction;
 
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DatumReader;
