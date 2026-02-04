@@ -6,7 +6,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import ru.practicum.ewm.stats.avro.ActionType;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
-import stats.message.userAction.UserAction;
+import stats.messages.collector.UserAction;
 
 import java.time.Instant;
 

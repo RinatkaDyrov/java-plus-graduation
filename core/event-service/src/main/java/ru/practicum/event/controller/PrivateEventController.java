@@ -12,7 +12,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.comment.service.CommentService;
-import ru.practicum.dto.RequestHitDto;
 import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.dto.comment.NewCommentDto;
 import ru.practicum.dto.event.EventFullDto;
@@ -21,7 +20,6 @@ import ru.practicum.dto.event.request.NewEventRequest;
 import ru.practicum.dto.event.request.UpdateEventRequest;
 import ru.practicum.event.service.EventService;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -30,7 +28,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PrivateEventController {
     private final EventService eventService;
-    private final StatClient statClient;
     private final CommentService commentService;
 
     @PostMapping
@@ -55,14 +52,6 @@ public class PrivateEventController {
                                                @RequestParam(required = false, defaultValue = "10") @Positive Integer size,
                                                HttpServletRequest request) {
         Pageable page = PageRequest.of(from / size, size, Sort.by("id").ascending());
-        RequestHitDto hitDto = RequestHitDto.builder()
-                .app("ewm-main-service")
-                .ip(request.getRemoteAddr())
-                .uri(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
-                .build();
-        log.info("Отправляем данные по запросу getEventsByUser в сервис статистики {}", hitDto.toString());
-        statClient.sendHit(hitDto);
         return eventService.getUsersEvents(userId, page, request.getRemoteAddr());
     }
 
@@ -71,14 +60,6 @@ public class PrivateEventController {
                                      @PathVariable("eventId") long eventId,
                                      HttpServletRequest request) {
         log.info("Получение конкретной информации для конкретного пользователя о мероприятии");
-        RequestHitDto hitDto = RequestHitDto.builder()
-                .app("ewm-main-service")
-                .ip(request.getRemoteAddr())
-                .uri(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
-                .build();
-        log.info("Отправляем данные по запросу getEventById в сервис статистики {}", hitDto.toString());
-        statClient.sendHit(hitDto);
         return eventService.getByIdPrivate(userId, eventId, request.getRemoteAddr());
     }
 

@@ -11,7 +11,7 @@ import ru.practicum.ewm.stats.avro.UserActionAvro;
 import ru.practicum.mapper.UserActionMapper;
 import ru.practicum.service.CollectorService;
 import ru.yandex.practicum.grpc.stats.action.UserActionControllerGrpc;
-import stats.message.userAction.UserAction;
+import stats.messages.collector.UserAction;
 
 @GrpcService
 @RequiredArgsConstructor
@@ -25,7 +25,7 @@ public class CollectorController extends UserActionControllerGrpc.UserActionCont
     private String topic;
 
     @Override
-    public void collectionUserAction(UserAction.UserActionProto request, StreamObserver<Empty> responseObserver) {
+    public void collectUserAction(UserAction.UserActionProto request, StreamObserver<Empty> responseObserver) {
         log.info("Получение информации о действии пользователя {}", request);
         try {
             UserActionAvro avro = userActionMapper.mapToAvro(request);
