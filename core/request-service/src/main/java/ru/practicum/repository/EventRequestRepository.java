@@ -18,19 +18,26 @@ public interface EventRequestRepository extends JpaRepository<EventRequest, Long
     Optional<EventRequest> findByEventIdAndRequesterId(Long eventId, Long requesterId);
 
     @Modifying
-    @Query("UPDATE EventRequest e SET e.status = :status WHERE e.id = :eventRequestId")
+    @Query("""
+            UPDATE EventRequest e
+            SET e.status = :status
+            WHERE e.id = :eventRequestId""")
     int updateStatus(@Param("eventRequestId") Long eventRequestId, @Param("status") Status status);
 
     List<EventRequest> findAllByEventId(Long eventId);
 
-    @Query("SELECT e FROM EventRequest e " +
-            "WHERE e.id IN (:requestIds) ")
+    @Query("""
+            SELECT e FROM EventRequest e
+            WHERE e.id IN (:requestIds)
+            """)
     List<EventRequest> findByRequestIds(@Param("requestIds") List<Long> requestIds);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE EventRequest e " +
-            "SET e.status = :status " +
-            "WHERE e.id IN (:requestIds)")
+    @Query("""
+            UPDATE EventRequest e
+            SET e.status = :status
+            WHERE e.id IN (:requestIds)
+            """)
     int updateStatusForRequestsIds(@Param("requestIds") List<Long> requestIds,
                                    @Param("status") Status status);
 
