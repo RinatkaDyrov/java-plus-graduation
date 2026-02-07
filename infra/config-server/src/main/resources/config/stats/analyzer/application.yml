@@ -1,0 +1,49 @@
+kafka:
+  bootstrap-servers: localhost:9092
+  consumer:
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    auto-offset-reset: earliest
+    enable-auto-commit: false
+    poll-timeout-ms: 1000
+
+    actions:
+      group-id: user-action-group
+      value-deserializer: ru.practicum.deserializer.userAction.UserActionAvroDeserializer
+      topic: stats.user-actions.v1
+
+    events:
+      group-id: events-group
+      value-deserializer: ru.practicum.deserializer.eventAction.EventSimilarityAvroDeserializer
+      topic: stats.events-similarity.v1
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:6435/analyzer
+    username: analyzer
+    password: analyzer
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+grpc:
+  server:
+    port: 0
+    security:
+      enabled: false
+
+threadPool:
+  corePoolSize: 2
+  maximumPoolSize: 2
+  arrayBlockingQueue:
+    capacity: 2
+  keepAliveTime: 60

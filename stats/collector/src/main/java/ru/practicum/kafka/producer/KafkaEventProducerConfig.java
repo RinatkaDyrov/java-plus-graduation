@@ -10,24 +10,25 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
 import java.util.Properties;
 
-@Component
+@Configuration
 @RequiredArgsConstructor
 @Slf4j
 public class KafkaEventProducerConfig {
 
-    @Value("${spring.kafka.bootstrap-servers}")
+    @Value("${kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    @Value("${spring.kafka.producer.value-serializer}")
+    @Value("${kafka.value-serializer}")
     private String valueSerializer;
 
     @Bean
     public Producer<String, SpecificRecordBase> kafkaProducer() {
+        log.info("----- Kafka producer bootstrap={}, valueSerializer={}", bootstrapServers, valueSerializer);
         Properties config = new Properties();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());

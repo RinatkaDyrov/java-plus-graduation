@@ -22,6 +22,9 @@ public class KafkaUserActionConsumer {
     @Value("${kafka.consumer.group-id}")
     private String groupId;
 
+    @Value("${kafka.consumer.auto-offset-reset}")
+    private String autoOffset;
+
     @Bean
     public Consumer<String, SpecificRecordBase> kafkaConsumer() {
         Properties config = new Properties();
@@ -29,7 +32,7 @@ public class KafkaUserActionConsumer {
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializer);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffset);
         config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 
         return new KafkaConsumer<>(config);

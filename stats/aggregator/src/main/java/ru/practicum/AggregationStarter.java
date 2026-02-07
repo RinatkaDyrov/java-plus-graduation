@@ -50,11 +50,23 @@ public class AggregationStarter {
                                 continue;
                             }
 
-                            list.forEach(x -> producer.send(new ProducerRecord<>(
-                                    eventSimilarityTopic,
-                                    null,
-                                    x.getEventA() + "_" + x.getEventB(),
-                                    x)));
+                            list.forEach(x -> {
+                                String key = x.getEventA() + "_" + x.getEventB();
+
+                                producer.send(
+                                        new ProducerRecord<>(eventSimilarityTopic, null, key, x),
+                                        (meta, ex) -> {
+                                            if (ex != null) {
+                                                log.error("Failed to send similarity. topic={}, key={}", eventSimilarityTopic, key, ex);
+                                            } else {
+                                                log.info("Sent similarity. topic={}, partition={}, offset={}, key={}",
+                                                        meta.topic(), meta.partition(), meta.offset(), key);
+                                            }
+                                        }
+                                );
+                            });
+
+                            producer.flush();
                         } catch (Exception e) {
                             log.error("Ошибка обработки сообщения с ключом: {}", record.key(), e);
 

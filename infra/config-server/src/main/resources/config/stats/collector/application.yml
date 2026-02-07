@@ -3,13 +3,8 @@ grpc:
     port: 0
     reflection-service-enabled: true
 
-spring:
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.LongSerializer
-      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
-
 kafka:
+  bootstrap-servers: localhost:9092
+  value-serializer: ru.practicum.serializer.AvroSerializer
   topics:
     user-action: stats.user-actions.v1

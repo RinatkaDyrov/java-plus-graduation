@@ -34,58 +34,51 @@ public class AggregatorServiceImpl implements AggregatorService {
                 actionAvro.getEventId(),
                 k -> new HashMap<>()
         );
+        double actionWeight = 0.0;
+        switch (actionAvro.getActionType()) {
+            case VIEW -> actionWeight = VIEW_WEIGHT;
+            case REGISTER -> actionWeight = REGISTER_WEIGHT;
+            case LIKE -> actionWeight = LIKE_WEIGHT;
+        }
+        Double currentWeight = usersWeight.getOrDefault(actionAvro.getUserId(), 0.0);
 
-        double actionWeight = switch (actionAvro.getActionType()) {
-            case VIEW -> VIEW_WEIGHT;
-            case REGISTER -> REGISTER_WEIGHT;
-            case LIKE -> LIKE_WEIGHT;
-        };
-
-        double currentWeight = usersWeight.getOrDefault(actionAvro.getUserId(), 0.0);
         if (actionWeight <= currentWeight) {
             return List.of();
         }
-
         usersWeight.put(actionAvro.getUserId(), actionWeight);
-        ownWeightSum.put(
-                actionAvro.getUserId(),
-                ownWeightSum.getOrDefault(actionAvro.getUserId(), 0.0) + actionWeight - currentWeight
-        );
+        ownWeightSum.put(actionAvro.getEventId(), ownWeightSum.getOrDefault(actionAvro.getEventId(), 0.0) +
+                actionWeight - currentWeight);
 
-        Instant ts = Instant.now();
         List<EventSimilarityAvro> result = new ArrayList<>();
+        Instant ts = Instant.now();
 
         for (Long key : actionWeightMap.keySet()) {
             if (key == actionAvro.getEventId()) {
                 continue;
             }
+            if (actionWeightMap.get(key).containsKey(actionAvro.getUserId())) {
+                double minWeightSum = get(actionAvro.getEventId(), key);
+                double event2Weight = actionWeightMap.get(key).get(actionAvro.getUserId());
 
-            Map<Long, Double> usersOfOtherEvent = actionWeightMap.get(key);
-            Double weightInOtherEvent = usersOfOtherEvent.get(actionAvro.getUserId());
-            if (weightInOtherEvent == null) {
-                continue;
+                minWeightSum += Math.min(event2Weight, actionWeight) - Math.min(event2Weight, currentWeight);
+
+                double s1 = ownWeightSum.get(actionAvro.getEventId());
+                double s2 = ownWeightSum.get(key);
+
+                long eventA = Math.min(actionAvro.getEventId(), key);
+                long eventB = Math.max(actionAvro.getEventId(), key);
+                double score = getSimilarityCoefficient(s1, s2, minWeightSum);
+
+                EventSimilarityAvro eventSimilarityAvro = EventSimilarityAvro.newBuilder()
+                        .setEventA(eventA)
+                        .setEventB(eventB)
+                        .setScore(score)
+                        .setTimestamp(ts)
+                        .build();
+
+                result.add(eventSimilarityAvro);
+                put(actionAvro.getEventId(), key, minWeightSum);
             }
-
-            double event2Weight = weightInOtherEvent;
-            double minWeightSum = get(actionAvro.getEventId(), key);
-            minWeightSum += Math.min(event2Weight, actionWeight) - Math.min(event2Weight, currentWeight);
-
-            double s1 = ownWeightSum.get(actionAvro.getEventId());
-            double s2 = ownWeightSum.get(key);
-
-            long eventA = Math.min(actionAvro.getEventId(), key);
-            long eventB = Math.max(actionAvro.getEventId(), key);
-
-            double score = getSimilarityCoefficient(s1, s2, minWeightSum);
-
-            EventSimilarityAvro out = EventSimilarityAvro.newBuilder()
-                    .setEventA(eventA)
-                    .setEventB(eventB)
-                    .setScore(score)
-                    .setTimestamp(ts)
-                    .build();
-            result.add(out);
-            put(actionAvro.getEventId(), key, minWeightSum);
         }
 
         return result;
