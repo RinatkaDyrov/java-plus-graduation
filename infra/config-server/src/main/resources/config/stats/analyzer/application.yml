@@ -17,6 +17,8 @@ kafka:
       topic: stats.events-similarity.v1
 
 spring:
+  main:
+    web-application-type: none
   datasource:
     url: jdbc:postgresql://localhost:6435/analyzer
     username: analyzer
