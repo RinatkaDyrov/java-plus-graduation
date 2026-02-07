@@ -58,7 +58,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>3.3.0</version>
                 <configuration>
-                    <mainClass>ru.practicum.Aggregator</mainClass>
+                    <mainClass>ru.practicum.AggregatorApp</mainClass>
                 </configuration>
                 <executions>
                     <execution>
