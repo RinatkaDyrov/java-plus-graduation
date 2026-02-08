@@ -3,7 +3,6 @@ package ru.practicum.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.practicum.dto.event.request.Status;
 import ru.practicum.model.EventRequest;
@@ -22,7 +21,7 @@ public interface EventRequestRepository extends JpaRepository<EventRequest, Long
             UPDATE EventRequest e
             SET e.status = :status
             WHERE e.id = :eventRequestId""")
-    int updateStatus(@Param("eventRequestId") Long eventRequestId, @Param("status") Status status);
+    int updateStatus(Long eventRequestId, Status status);
 
     List<EventRequest> findAllByEventId(Long eventId);
 
@@ -30,7 +29,7 @@ public interface EventRequestRepository extends JpaRepository<EventRequest, Long
             SELECT e FROM EventRequest e
             WHERE e.id IN (:requestIds)
             """)
-    List<EventRequest> findByRequestIds(@Param("requestIds") List<Long> requestIds);
+    List<EventRequest> findByRequestIds(List<Long> requestIds);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
@@ -38,10 +37,9 @@ public interface EventRequestRepository extends JpaRepository<EventRequest, Long
             SET e.status = :status
             WHERE e.id IN (:requestIds)
             """)
-    int updateStatusForRequestsIds(@Param("requestIds") List<Long> requestIds,
-                                   @Param("status") Status status);
+    int updateStatusForRequestsIds(List<Long> requestIds, Status status);
 
     @Query("SELECT e FROM EventRequest e WHERE e.id IN (:requestIds)")
-    List<EventRequest> findByIdIn(@Param("requestIds") List<Long> requestIds);
+    List<EventRequest> findByIdIn(List<Long> requestIds);
 }
 

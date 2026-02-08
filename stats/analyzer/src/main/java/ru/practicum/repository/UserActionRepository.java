@@ -3,7 +3,6 @@ package ru.practicum.repository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import ru.practicum.model.UserAction;
 
 import java.util.List;
@@ -21,7 +20,7 @@ public interface UserActionRepository extends JpaRepository<UserAction, Long> {
             GROUP BY ua.eventId
             ORDER BY MAX(ua.timestamp) DESC
             """)
-    List<Long> findEventIdsOrderByMaxMarkDesc(@Param("userId") Long userId, Pageable pageable);
+    List<Long> findEventIdsOrderByMaxMarkDesc(Long userId, Pageable pageable);
 
     @Query("""
             SELECT ua.eventId
@@ -36,7 +35,7 @@ public interface UserActionRepository extends JpaRepository<UserAction, Long> {
             WHERE ua.eventId IN :eventIds
             GROUP BY ua.eventId
             """)
-    List<EventRatingSumView> sumRatingsForEvents(@Param("eventIds") List<Long> eventIds);
+    List<EventRatingSumView> sumRatingsForEvents(List<Long> eventIds);
 
     List<UserAction> findAllByUserId(Long userId);
 }

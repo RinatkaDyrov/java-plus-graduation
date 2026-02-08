@@ -26,16 +26,11 @@ public class KafkaConfig {
     @Value("${kafka.consumer.enable-auto-commit}")
     private boolean enableAutoCommit;
 
-    @Value("${kafka.consumer.poll-timeout-ms}")
-    private int pollTimeoutMs;
-
-
     @Value("${kafka.consumer.actions.group-id}")
     private String actionsGroupId;
 
     @Value("${kafka.consumer.actions.value-deserializer}")
     private String actionsValueDeserializer;
-
 
     @Value("${kafka.consumer.events.group-id}")
     private String eventsGroupId;

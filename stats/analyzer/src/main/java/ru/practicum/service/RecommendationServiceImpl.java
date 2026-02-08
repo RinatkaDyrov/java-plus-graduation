@@ -56,7 +56,9 @@ public class RecommendationServiceImpl implements RecommendationService {
 
             Double userRating = userRatings.get(knownEvent);
 
-            if (userRating == null) continue;
+            if (userRating == null) {
+                continue;
+            }
 
             predictedScores.merge(candidate, similarity * userRating, Double::sum);
             similaritySums.merge(candidate, similarity, Double::sum);

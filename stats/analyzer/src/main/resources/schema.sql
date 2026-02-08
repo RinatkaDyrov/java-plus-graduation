@@ -15,3 +15,8 @@ CREATE TABLE IF NOT EXISTS similarities (
     timestamp TIMESTAMP NOT NULL,
     UNIQUE (event1, event2)
 );
+
+CREATE INDEX idx_interactions_user_id ON interactions (user_id);
+CREATE INDEX idx_interactions_event_id ON interactions (event_id);
+CREATE INDEX idx_similarities_event1 ON similarities (event1);
+CREATE INDEX idx_similarities_event2 ON similarities (event2);

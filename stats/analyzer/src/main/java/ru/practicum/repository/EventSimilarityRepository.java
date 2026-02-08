@@ -2,7 +2,6 @@ package ru.practicum.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import ru.practicum.model.EventSimilarity;
 
 import java.util.List;
@@ -18,7 +17,7 @@ public interface EventSimilarityRepository extends JpaRepository<EventSimilarity
             WHERE (e.event1 IN :eventIds AND e.event2 NOT IN :eventIds)
                OR (e.event2 IN :eventIds AND e.event1 NOT IN :eventIds)
             """)
-    List<EventSimilarity> findSimilarPairsForEvents(@Param("eventIds") List<Long> eventIds);
+    List<EventSimilarity> findSimilarPairsForEvents(List<Long> eventIds);
 
     List<EventSimilarity> findByEvent1OrEvent2(Long event1, Long event2);
 }
