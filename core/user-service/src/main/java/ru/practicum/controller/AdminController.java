@@ -13,20 +13,20 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping(path = "/admin")
+@RequestMapping(path = "/admin/users")
 @RequiredArgsConstructor
 @Slf4j
 public class AdminController {
     private final UserService userService;
 
-    @PostMapping("/users")
+    @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@Valid @RequestBody UserDto userDto) {
         log.info("Запрос на добавление пользователя с параметрами {}", userDto);
         return userService.createUser(userDto);
     }
 
-    @GetMapping("/users")
+    @GetMapping()
     @ResponseStatus(HttpStatus.OK)
     public List<UserDto> getUsers(@RequestParam(required = false, defaultValue = "") List<Long> ids,
                                   @RequestParam(required = false, defaultValue = "0") @Min(0) Long from,
@@ -36,14 +36,13 @@ public class AdminController {
         return userService.getUsers(ids, from, size);
     }
 
-
-    @DeleteMapping("/users/{userId}")
+    @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
     }
 
-    @GetMapping("/users/{userId}")
+    @GetMapping("/{userId}")
     public Optional<UserDto> getUserById(@PathVariable Long userId) {
         log.info("Внутренний запрос на получение данных пользователя по ID={}", userId);
         return userService.gtUserById(userId);

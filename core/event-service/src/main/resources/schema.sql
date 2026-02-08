@@ -28,7 +28,6 @@ CREATE TABLE IF NOT EXISTS events (
     request_moderation BOOLEAN,
     initiator_id BIGINT NOT NULL,
     initiator_name VARCHAR(100),
-    views INTEGER,
     state VARCHAR(50),
     confirmed_requests INTEGER,
     created_on TIMESTAMP NOT NULL,

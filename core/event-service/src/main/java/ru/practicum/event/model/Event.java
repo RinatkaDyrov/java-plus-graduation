@@ -68,10 +68,6 @@ public class Event {
     @Column(name = "initiator_name")
     String initiatorName;
 
-    //счетчик просмотров
-    @Column(name = "views")
-    int views;
-
     @Enumerated(EnumType.STRING)
     State state;
 
@@ -90,7 +86,7 @@ public class Event {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Event event = (Event) o;
-        return participantLimit == event.participantLimit && views == event.views
+        return participantLimit == event.participantLimit
                 && confirmedRequests == event.confirmedRequests && Objects.equals(id, event.id)
                 && Objects.equals(title, event.title) && Objects.equals(annotation, event.annotation)
                 && Objects.equals(description, event.description) && Objects.equals(eventDate, event.eventDate)
@@ -104,7 +100,7 @@ public class Event {
     @Override
     public int hashCode() {
         return Objects.hash(id, title, annotation, description, eventDate, category, location, paid, participantLimit,
-                requestModeration, initiatorId, initiatorName, views, state, confirmedRequests, createdOn, publishedOn);
+                requestModeration, initiatorId, initiatorName, state, confirmedRequests, createdOn, publishedOn);
     }
 
     @Override
@@ -122,7 +118,6 @@ public class Event {
                 ", requestModeration=" + requestModeration +
                 ", initiatorIdId=" + initiatorId +
                 ", initiatorName=" + initiatorName +
-                ", views=" + views +
                 ", state=" + state +
                 ", confirmedRequests=" + confirmedRequests +
                 ", createdOn=" + createdOn +

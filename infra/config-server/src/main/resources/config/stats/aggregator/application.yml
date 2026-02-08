@@ -1,0 +1,10 @@
+kafka:
+  bootstrap-servers: localhost:9092
+  value-serializer: ru.practicum.serializer.AvroSerializer
+  value-deserializer: ru.practicum.deserializer.userAction.UserActionAvroDeserializer
+  consumer:
+    group-id: aggregator-group
+    auto-offset-reset: latest
+  topics:
+    user-action: stats.user-actions.v1
+    event-similarity: stats.events-similarity.v1

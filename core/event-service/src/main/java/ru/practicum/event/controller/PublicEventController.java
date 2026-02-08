@@ -9,8 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.StatClient;
-import ru.practicum.dto.RequestHitDto;
+//import ru.practicum.dto.RequestHitDto;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventSearchParam;
 import ru.practicum.dto.event.EventShortDto;
@@ -26,20 +25,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PublicEventController {
     private final EventService eventService;
-    private final StatClient statClient;
 
     @GetMapping("/{eventId}")
-    public EventFullDto getById(@PathVariable Long eventId, HttpServletRequest request) {
+    public EventFullDto getById(@PathVariable Long eventId,
+                                HttpServletRequest request,
+                                @RequestHeader("X-EWM-USER-ID") Long userId) {
         log.info("Получаем мероприятие для Public API по id = {}", eventId);
-        RequestHitDto hitDto = RequestHitDto.builder()
-                .app("ewm-main-service")
-                .ip(request.getRemoteAddr())
-                .uri(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
-                .build();
-        log.info("Отправляем данные по запросу getById в сервис статистики {}", hitDto.toString());
-        statClient.sendHit(hitDto);
-        return eventService.getByIdPublic(eventId, request.getRemoteAddr());
+        return eventService.getByIdPublic(eventId, request.getRemoteAddr(), userId);
     }
 
     @GetMapping
@@ -69,14 +61,6 @@ public class PublicEventController {
                 .onlyAvailable(onlyAvailable)
                 .sort(sort)
                 .build();
-        RequestHitDto hitDto = RequestHitDto.builder()
-                .app("ewm-main-service")
-                .ip(request.getRemoteAddr())
-                .uri(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
-                .build();
-        log.info("Отправляем данные по запросу getEventsWithParam в сервис статистики {}", hitDto.toString());
-        statClient.sendHit(hitDto);
         return eventService.getEventsWithParamPublic(eventSearchParam, page, request.getRemoteAddr());
     }
 
@@ -96,4 +80,14 @@ public class PublicEventController {
         return eventService.updateConfirmedRequests(eventId, increment);
     }
 
+    @GetMapping("/recommendations")
+    public List<EventFullDto> getRecommendations(@RequestHeader("X-EWM-USER-ID") Long userId) {
+        return eventService.getRecommendations(userId);
+    }
+
+    @PutMapping("/{eventId}/like")
+    public void setLike(@RequestHeader("X-EWM-USER-ID") Long userId,
+                        @PathVariable Long eventId) {
+        eventService.setLike(userId, eventId);
+    }
 }

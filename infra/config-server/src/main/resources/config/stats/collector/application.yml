@@ -1,0 +1,10 @@
+grpc:
+  server:
+    port: 0
+    reflection-service-enabled: true
+
+kafka:
+  bootstrap-servers: localhost:9092
+  value-serializer: ru.practicum.serializer.AvroSerializer
+  topics:
+    user-action: stats.user-actions.v1

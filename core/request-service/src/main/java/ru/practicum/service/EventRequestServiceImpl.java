@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import ru.practicum.UserActionClient;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.State;
 import ru.practicum.dto.event.request.EventRequestDto;
@@ -21,7 +22,9 @@ import ru.practicum.feignClient.user.UserClient;
 import ru.practicum.mapper.EventRequestMapper;
 import ru.practicum.model.EventRequest;
 import ru.practicum.repository.EventRequestRepository;
+import stats.messages.collector.UserAction;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +37,7 @@ public class EventRequestServiceImpl implements EventRequestService {
     private final EventClient eventClient;
     private final EventRequestRepository eventRequestRepository;
     private final TransactionTemplate transactionTemplate;
+    private final UserActionClient userActionClient;
 
     @Transactional(readOnly = true)
     @Override
@@ -98,6 +102,7 @@ public class EventRequestServiceImpl implements EventRequestService {
                 throw new RequestModerationException("Не удалось обновить confirmedRequests");
             }
         }
+        userActionClient.collectUserAction(eventId, userId, UserAction.ActionTypeProto.ACTION_REGISTER, Instant.now());
 
         return EventRequestMapper.mapToEventRequestDto(saved);
     }

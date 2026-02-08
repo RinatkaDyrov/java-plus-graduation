@@ -9,43 +9,52 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.RecommendationsClient;
+import ru.practicum.UserActionClient;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventSearchParam;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.State;
+import ru.practicum.dto.event.request.EventRequestDto;
 import ru.practicum.dto.event.request.NewEventRequest;
+import ru.practicum.dto.event.request.Status;
 import ru.practicum.dto.event.request.UpdateEventRequest;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.model.StateAction;
 import ru.practicum.event.repository.EventRepository;
-import ru.practicum.event.repository.ViewsRepository;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.InvalidRequestException;
 import ru.practicum.exception.NotFoundException;
+import ru.practicum.feignClient.eventRequest.LikeRequestClient;
 import ru.practicum.feignClient.user.UserClient;
 import ru.practicum.location.mapper.LocationMapper;
 import ru.practicum.location.model.Location;
 import ru.practicum.location.repository.LocationRepository;
+import stats.messages.analyzer.AnalyzerMessages;
+import stats.messages.collector.UserAction;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @AllArgsConstructor(onConstructor_ = @Autowired)
 public class EventServiceImpl implements EventService {
-    EventRepository eventRepository;
-    LocationRepository locationRepository;
-    UserClient userClient;
-    CategoryRepository categoryRepository;
-    ViewsRepository viewsRepository;
+
+    private final EventRepository eventRepository;
+    private final LocationRepository locationRepository;
+    private final UserClient userClient;
+    private final CategoryRepository categoryRepository;
+    private final RecommendationsClient recommendationsClient;
+    private final LikeRequestClient likeClient;
+    private final UserActionClient statClient;
 
     @Transactional
     @Override
@@ -61,14 +70,14 @@ public class EventServiceImpl implements EventService {
         Event create = EventMapper.mapToEventNew(request, category, location, initiator);
         Event event = eventRepository.save(create);
         log.info("Создание меропрития {} завершено", event);
-        return EventMapper.mapToFullDto(event);
+        return EventMapper.mapToFullDto(event, 0);
     }
 
     @Override
     @Transactional
     public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventRequest request) {
         Event event = getEvent(eventId);
-        log.info("Валидация события (id {}) для обновления пользователем (id {})", event.getId(), userId);
+        log.info("Валидация события (id {}) для обновления пользователем (id {}): {}", event.getId(), userId, request);
         if (!(userClient.getUserById(userId).isPresent() &&
                 event.getInitiatorId().equals(userId) &&
                 !event.getState().equals(State.PUBLISHED))) {
@@ -77,14 +86,22 @@ public class EventServiceImpl implements EventService {
         }
         updateEventFields(event, request);
 
-        return EventMapper.mapToFullDto(eventRepository.save(event));
+        Optional<AnalyzerMessages.RecommendedEventProto> interactionsCount =
+                recommendationsClient.getInteractionsCount(List.of(eventId)).findFirst();
+        double rating = 0.0;
+
+        if (interactionsCount.isPresent()) {
+            rating = interactionsCount.get().getScore();
+        }
+
+        return EventMapper.mapToFullDto(eventRepository.save(event), rating);
     }
 
     @Override
     @Transactional
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventRequest request) {
         Event event = getEvent(eventId);
-        log.info("Валидация события (id {}) для обновления", event.getId());
+        log.info("Валидация события (id {}) для обновления: {}", event.getId(), request);
         if (request.getStateAction() != null
                 && request.getStateAction().equals(StateAction.PUBLISH_EVENT.toString())
                 && !event.getState().equals(State.PENDING)) {
@@ -98,7 +115,16 @@ public class EventServiceImpl implements EventService {
             throw new ConflictException("Событие можно отклонить, только если оно еще не опубликовано ");
         }
         updateEventFields(event, request);
-        return EventMapper.mapToFullDto(eventRepository.save(event));
+
+        Optional<AnalyzerMessages.RecommendedEventProto> interactionsCount =
+                recommendationsClient.getInteractionsCount(List.of(eventId)).findFirst();
+        double rating = 0.0;
+
+        if (interactionsCount.isPresent()) {
+            rating = interactionsCount.get().getScore();
+        }
+
+        return EventMapper.mapToFullDto(eventRepository.save(event), rating);
     }
 
     @Transactional
@@ -107,30 +133,46 @@ public class EventServiceImpl implements EventService {
         log.info("Начинаем получение мероприятия id = {}", eventId);
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("Event", eventId));
-        updateViews(event.getId(), ip);
         log.info("Мероприятие успешно получено: {}", event);
-        return EventMapper.mapToFullDto(event);
+
+        Optional<AnalyzerMessages.RecommendedEventProto> interactionsCount =
+                recommendationsClient.getInteractionsCount(List.of(eventId)).findFirst();
+        double rating = 0.0;
+
+        if (interactionsCount.isPresent()) {
+            rating = interactionsCount.get().getScore();
+        }
+
+        return EventMapper.mapToFullDto(eventRepository.save(event), rating);
     }
 
     @Transactional
     @Override
-    public EventFullDto getByIdPublic(Long eventId, String ip) {
+    public EventFullDto getByIdPublic(Long eventId, String ip, Long userId) {
         log.info("Начинаем поиск мероприятия id = {} со статусом Published", eventId);
         Event event = eventRepository.findByIdAndState(eventId, State.PUBLISHED)
                 .orElseThrow(() -> new NotFoundException("Event", eventId));
         log.info("Мероприятие найдено: {}", event);
-        updateViews(eventId, ip);
-        return EventMapper.mapToFullDto(event);
+
+        Optional<AnalyzerMessages.RecommendedEventProto> interactionsCount =
+                recommendationsClient.getInteractionsCount(List.of(eventId)).findFirst();
+        double rating = 0.0;
+
+        if (interactionsCount.isPresent()) {
+            rating = interactionsCount.get().getScore();
+        }
+        statClient.collectUserAction(eventId, userId, UserAction.ActionTypeProto.ACTION_VIEW, Instant.now());
+
+        return EventMapper.mapToFullDto(eventRepository.save(event), rating);
     }
 
     @Transactional
     @Override
     public List<EventShortDto> getUsersEvents(Long userId, Pageable page, String ip) {
-        if (userClient.getUserById(userId).isEmpty()){
+        if (userClient.getUserById(userId).isEmpty()) {
             throw new NotFoundException("User", userId);
         }
         Page<Event> events = eventRepository.findByInitiatorId(userId, page);
-        events.forEach(event -> updateViews(event.getId(), ip));
         log.info("Получаем все опубликованные мероприятия для пользователя id = {}: размер списка: {}, " +
                 "список меропритий: {}", userId, events.getSize(), events.getContent());
         return events.stream()
@@ -162,25 +204,26 @@ public class EventServiceImpl implements EventService {
         List<EventShortDto> events = eventRepository.findAll(spec, page).stream()
                 .map(EventMapper::mapToShortDto)
                 .toList();
-        events.forEach(event -> updateViews(event.getId(), ip));
         log.info("Возвращаем список мероприятий для Public API: {}", events);
         return events;
     }
 
     @Override
     public Optional<EventFullDto> getEventByIdInternal(Long eventId) {
-        return eventRepository.findById(eventId).map(EventMapper::mapToFullDto);
+        return eventRepository.findById(eventId)
+                .map(e -> EventMapper.mapToFullDto(e, 0.0));
     }
 
     @Override
     public Optional<EventFullDto> getEventByIdAndInitiator(Long eventId, Long userId) {
-        return eventRepository.findByIdAndInitiatorId(eventId, userId).map(EventMapper::mapToFullDto);
+        return eventRepository.findByIdAndInitiatorId(eventId, userId)
+                .map(e -> EventMapper.mapToFullDto(e, 0.0));
     }
 
     @Transactional
     @Override
     public Boolean updateConfirmedRequests(Long eventId, Integer increment) {
-        eventRepository.incrementConfirmedRequests(eventId,increment);
+        eventRepository.incrementConfirmedRequests(eventId, increment);
         return true;
     }
 
@@ -191,6 +234,56 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("Event", eventId));
         event.setConfirmedRequests(event.getConfirmedRequests() + delta);
         eventRepository.save(event);
+    }
+
+    @Override
+    public List<EventFullDto> getRecommendations(Long userId) {
+        UserDto user = userClient.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id: " + userId + " не найден"));
+        List<AnalyzerMessages.RecommendedEventProto> recommendedEventProtoList = recommendationsClient
+                .getRecommendationsForUser(userId, 10)
+                .toList();
+        if (recommendedEventProtoList.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, Double> eventScores = recommendedEventProtoList.stream()
+                .collect(Collectors.toMap(
+                        AnalyzerMessages.RecommendedEventProto::getEventId,
+                        AnalyzerMessages.RecommendedEventProto::getScore
+                ));
+
+        Map<Long, Event> eventMap = eventRepository.findAllById(eventScores.keySet())
+                .stream()
+                .collect(Collectors.toMap(Event::getId, Function.identity()));
+
+        return recommendedEventProtoList.stream()
+                .map(recommendedEvent -> {
+                    Event event = eventMap.get(recommendedEvent.getEventId());
+                    return event != null ? EventMapper.mapToFullDto(event, recommendedEvent.getScore()) : null;
+                })
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    @Override
+    public void setLike(Long userId, Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие с id: " + eventId + " не найдено"));
+        if (Objects.equals(event.getInitiatorId(), userId)) {
+            throw new InvalidRequestException("Нельзя поставить лайк своему событию");
+        }
+
+        UserDto user = userClient.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id: " + userId + " не найден"));
+
+        EventRequestDto request = likeClient.getByEventIdAndRequesterId(eventId, userId)
+                .orElseThrow(() ->  new InvalidRequestException("Невозможно получить запрос на участие событии"));
+
+        if (request.getStatus().equals(Status.CONFIRMED)) {
+            throw new InvalidRequestException("Нельзя поставить лайк не участвуя в событии");
+        }
+        statClient.collectUserAction(eventId, userId, UserAction.ActionTypeProto.ACTION_LIKE, Instant.now());
+        log.info("Пользователь (id: {}) поставил лайк событию (id: {})", user, event.getId());
     }
 
     private Event getEvent(Long id) {
@@ -259,16 +352,6 @@ public class EventServiceImpl implements EventService {
         if (request.getTitle() != null) {
             log.debug("Обновление заголовка события");
             event.setTitle(request.getTitle());
-        }
-    }
-
-    private void updateViews(Long eventId, String ip) {
-        log.info("Сохраняем ip для Event id = {}", eventId);
-        viewsRepository.upsertNative(eventId, ip);
-        log.info("Обновляем счетчик просмотров для мероприятия id = {}", eventId);
-        Integer eventViews = viewsRepository.countByEventId(eventId);
-        if (eventViews > 0) {
-            eventRepository.updateViews(eventId, eventViews);
         }
     }
 
