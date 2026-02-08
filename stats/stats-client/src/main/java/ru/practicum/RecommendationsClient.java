@@ -16,7 +16,7 @@ public class RecommendationsClient {
 
     private final RecommendationsControllerGrpc.RecommendationsControllerBlockingStub client;
 
-    public RecommendationsClient(@GrpcClient("analyzer") RecommendationsControllerGrpc.RecommendationsControllerBlockingStub client) {
+    public RecommendationsClient(@GrpcClient("ANALYZER") RecommendationsControllerGrpc.RecommendationsControllerBlockingStub client) {
         this.client = client;
         log.info("### Клиент рекомендаций инициализирован с помощью gRPC: сервис analyzer");
     }

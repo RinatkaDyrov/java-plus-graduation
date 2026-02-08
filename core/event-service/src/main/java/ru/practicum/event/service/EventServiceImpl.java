@@ -77,7 +77,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventRequest request) {
         Event event = getEvent(eventId);
-        log.info("Валидация события (id {}) для обновления пользователем (id {})", event.getId(), userId);
+        log.info("Валидация события (id {}) для обновления пользователем (id {}): {}", event.getId(), userId, request);
         if (!(userClient.getUserById(userId).isPresent() &&
                 event.getInitiatorId().equals(userId) &&
                 !event.getState().equals(State.PUBLISHED))) {
@@ -101,7 +101,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventRequest request) {
         Event event = getEvent(eventId);
-        log.info("Валидация события (id {}) для обновления", event.getId());
+        log.info("Валидация события (id {}) для обновления: {}", event.getId(), request);
         if (request.getStateAction() != null
                 && request.getStateAction().equals(StateAction.PUBLISH_EVENT.toString())
                 && !event.getState().equals(State.PENDING)) {

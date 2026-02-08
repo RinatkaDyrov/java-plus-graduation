@@ -15,7 +15,7 @@ public class UserActionClient {
 
     private final UserActionControllerGrpc.UserActionControllerBlockingStub userActionStub;
 
-    public UserActionClient(@GrpcClient("collector") UserActionControllerGrpc.UserActionControllerBlockingStub client) {
+    public UserActionClient(@GrpcClient("COLLECTOR") UserActionControllerGrpc.UserActionControllerBlockingStub client) {
         this.userActionStub = client;
         log.info("### Клиент действий пользователя инициализирован с помощью gRPC: сервис collector");
     }
